@@ -604,6 +604,61 @@
     .world-stats { grid-template-columns: 1fr 1fr; }
     .hero-cta { padding: 0.9rem 2rem; }
   }
+
+  /* ===== PV Trailer ===== */
+  .pv-section {
+    background: var(--bg2);
+  }
+  .pv-wrap {
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid var(--rule);
+    box-shadow: 0 0 60px rgba(139,111,204,0.15);
+    aspect-ratio: 16/9;
+    background: #000;
+  }
+  .pv-wrap video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .pv-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(8,7,15,0.3) 0%, transparent 40%, transparent 60%, rgba(8,7,15,0.6) 100%);
+    pointer-events: none;
+    z-index: 1;
+  }
+  .pv-label-tag {
+    position: absolute;
+    top: 1.5rem;
+    left: 1.5rem;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+  .pv-label-tag::before {
+    content: '';
+    width: 8px; height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--accent);
+    animation: pulse-dot 1.5s infinite;
+  }
+  @keyframes pulse-dot {
+    0%,100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
 </style>
 </head>
 <body>
@@ -613,6 +668,7 @@
   <a href="#" class="nav-logo">永夜<span>之诗</span></a>
   <ul class="nav-menu">
     <li><a href="#features">游戏特色</a></li>
+    <li><a href="#pv">宣传PV</a></li>
     <li><a href="#characters">角色</a></li>
     <li><a href="#world">世界</a></li>
     <li><a href="#news">资讯</a></li>
@@ -662,6 +718,21 @@
       <h3 class="feature-title">潮汐双界切换</h3>
       <p class="feature-text">星渊潮汐涨落之间，现实与梦境两界交替显形——不同相位下出现的敌人、秘境与机遇截然不同，掌握潮汐节奏方能占尽先机。</p>
     </div>
+  </div>
+</section>
+
+<!-- PV Trailer -->
+<section class="pv-section section" id="pv">
+  <div class="section-header reveal">
+    <div class="section-label">Promotional Video</div>
+    <h2 class="section-title">宣传 PV</h2>
+    <p class="section-desc">以星轨为弦，奏响反抗黑暗的协奏——踏入九重星渊，见证永夜之下的史诗。</p>
+    <div class="divider"></div>
+  </div>
+  <div class="pv-wrap reveal">
+    <span class="pv-label-tag">PV · 永夜之诗</span>
+    <video src="./assets/pv-trailer.mp4" controls autoplay muted loop playsinline poster="./assets/hero-bg.jpg"></video>
+    <div class="pv-overlay"></div>
   </div>
 </section>
 
@@ -832,6 +903,7 @@
       <h4>游戏</h4>
       <ul>
         <li><a href="#features">游戏特色</a></li>
+        <li><a href="#pv">宣传PV</a></li>
         <li><a href="#characters">角色介绍</a></li>
         <li><a href="#world">世界观</a></li>
       </ul>
