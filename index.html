@@ -37,6 +37,7 @@
 
   html { scroll-behavior: smooth; }
 
+  html { overflow-x: hidden; }
   body {
     font-family: 'WorkSans', sans-serif;
     background: var(--bg);
@@ -518,21 +519,87 @@
   }
   .world-img {
     position: relative;
+    cursor: pointer;
+  }
+  .world-img:hover,
+  .world-img.open { z-index: 30; }
+  .world-frame {
+    position: relative;
     border-radius: 4px;
     overflow: hidden;
     border: 1px solid var(--rule);
+    transition: border-color .5s, box-shadow .5s;
   }
-  .world-img img {
+  .world-frame img {
     width: 100%; height: auto;
     display: block;
-    transition: transform 0.6s;
+    transition: transform .6s, filter .6s;
   }
-  .world-img:hover img { transform: scale(1.05); }
-  .world-img::before {
+  .world-img:hover .world-frame,
+  .world-img.open .world-frame {
+    border-color: rgba(212,175,55,0.5);
+    box-shadow: 0 18px 46px rgba(0,0,0,0.55);
+  }
+  .world-img:hover .world-frame img,
+  .world-img.open .world-frame img {
+    transform: scale(1.05);
+    filter: brightness(.78) saturate(.92);
+  }
+  .world-frame::before {
     content: ''; position: absolute; inset: 0;
     background: linear-gradient(135deg, rgba(212,175,55,0.1) 0%, transparent 50%);
     pointer-events: none;
     z-index: 1;
+  }
+  /* world hover stack: same page-turn reveal as the character cards */
+  .world-stack { position: absolute; inset: 0; pointer-events: none; }
+  .world-stack.back { z-index: 6; }
+  .world-stack.front { z-index: 7; }
+  .world-img:hover .stack-panel,
+  .world-img.open .stack-panel {
+    opacity: 1;
+    transform: perspective(1100px) rotateY(0deg) rotate(var(--rot, 0deg)) translateY(0) scale(1);
+    box-shadow:
+      0 14px 34px rgba(0,0,0,.6),
+      0 0 22px var(--glow, rgba(212,175,55,.5)),
+      0 0 58px var(--glow-soft, rgba(139,111,204,.28));
+    transition-delay: var(--d, 0s);
+  }
+  .wsp1 {
+    width: 38%; aspect-ratio: 3/4;
+    top: -10%; left: -10%;
+    --rot: -8deg; --turn: -78deg; --origin: left center; --d: 0s;
+    border: 1px solid rgba(232,224,255,.5);
+    --glow: rgba(232,224,255,.5);
+    z-index: 1;
+  }
+  .wsp2 {
+    width: 38%; aspect-ratio: 3/4;
+    top: -6%; right: -10%;
+    --rot: 7deg; --turn: 78deg; --origin: right center; --d: 1s;
+    border: 1px solid rgba(157,125,255,.5);
+    --glow: rgba(157,125,255,.5);
+    z-index: 2;
+  }
+  .wsp3 {
+    width: 42%; aspect-ratio: 3/4;
+    bottom: -13%; left: -12%;
+    --rot: -5deg; --turn: -70deg; --origin: left center; --d: 2s;
+    z-index: 3;
+  }
+  .wsp4 {
+    width: 42%; aspect-ratio: 3/4;
+    bottom: -9%; right: -12%;
+    --rot: 6deg; --turn: 70deg; --origin: right center; --d: 3s;
+    z-index: 4;
+  }
+  @media (max-width: 900px) {
+    .wsp1, .wsp2 { width: 44%; aspect-ratio: 4/5; }
+    .wsp3, .wsp4 { width: 46%; aspect-ratio: 4/5; }
+    .wsp1 { left: 3%; top: 3%; }
+    .wsp2 { right: 3%; top: 3%; }
+    .wsp3 { left: 3%; bottom: 3%; }
+    .wsp4 { right: 3%; bottom: 3%; }
   }
   .world-content h3 {
     font-size: 2rem;
@@ -1132,7 +1199,25 @@
   </div>
   <div class="world-inner">
     <div class="world-img reveal">
-      <img src="./assets/world-scene.jpg" alt="九重星渊">
+      <div class="world-frame">
+        <img src="./assets/world-scene.jpg" alt="九重星渊">
+      </div>
+      <div class="world-stack back" aria-hidden="true">
+        <figure class="stack-panel wsp1"><img src="./assets/world-realm-a.jpg" alt=""></figure>
+        <figure class="stack-panel wsp2"><img src="./assets/world-realm-b.jpg" alt=""></figure>
+      </div>
+      <div class="world-stack front" aria-hidden="true">
+        <div class="stack-panel wsp3 stack-story">
+          <span class="stack-ch">Chronicle I</span>
+          <h4>星轨潮汐</h4>
+          <p>每隔千年，九重星渊的星轨会同时涨落。潮声响起的那一刻，坍缩的晶簇桥尽数点亮，九座星渊短暂相连。</p>
+        </div>
+        <div class="stack-panel wsp4 stack-story">
+          <span class="stack-ch">Chronicle II</span>
+          <h4>殒星之约</h4>
+          <p>九颗恒星在寂灭之前，把最后的记忆埋进了残骸。踏上星渊的人所听见的低语，都是它们没说完的话。</p>
+        </div>
+      </div>
     </div>
     <div class="world-content reveal">
       <h3>悬浮于永夜之上的星辰残骸</h3>
@@ -1273,6 +1358,15 @@
       if (willOpen) card.classList.add('open');
     });
   });
+
+  // World image: tap toggles its stack on touch devices
+  const worldCard = document.querySelector('.world-img');
+  if (worldCard) {
+    worldCard.addEventListener('click', () => {
+      if (!touchOnly.matches) return;
+      worldCard.classList.toggle('open');
+    });
+  }
 </script>
 
 </body>
