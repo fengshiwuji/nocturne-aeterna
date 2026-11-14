@@ -895,7 +895,7 @@
   }
   .pv-time em { font-style: normal; opacity: .5; }
 
-  /* --- CRT static transition when leaving for the official forum --- */
+  /* --- CRT transition: show art first, then full-screen snow, then leave --- */
   .crt-overlay {
     position: fixed;
     inset: 0;
@@ -911,37 +911,50 @@
   .crt-overlay.is-on { opacity: 1; visibility: visible; }
   .crt-shot {
     position: relative;
-    width: min(92vw, 1080px);
-    max-height: 84vh;
+    height: min(82vh, 1180px);
+    max-width: 92vw;
+    width: auto;
     aspect-ratio: 3 / 4;
     overflow: hidden;
     border-radius: 22px / 30px;
     background: #000;
-    box-shadow: 0 0 0 1px rgba(212,175,55,.28), 0 0 90px rgba(157,125,255,.22), inset 0 0 90px rgba(0,0,0,.85);
+    box-shadow: 0 0 0 1px rgba(212,175,55,.28), 0 0 90px rgba(157,125,255,.22), inset 0 0 70px rgba(0,0,0,.6);
   }
   .crt-shot img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    filter: contrast(1.12) saturate(1.08);
   }
-  .crt-scan, .crt-noise, .crt-roll, .crt-flash { position: absolute; inset: 0; pointer-events: none; }
-  .crt-scan {
-    background: repeating-linear-gradient(0deg, rgba(0,0,0,.45) 0 1px, transparent 1px 3px);
-    mix-blend-mode: multiply;
+  .crt-overlay.is-on .crt-shot img { animation: crt-breathe 1.9s ease-out forwards; }
+  .crt-snow {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    opacity: 0;
+    background: #060509;
+    transition: opacity .16s linear;
   }
-  .crt-noise {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E");
-    opacity: .38;
+  .crt-overlay.is-static .crt-snow { opacity: 1; }
+  .crt-snow-noise {
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.75'/%3E%3C/svg%3E");
+    opacity: .92;
     mix-blend-mode: screen;
-    animation: crt-noise .26s steps(3) infinite;
+    animation: crt-noise .16s steps(4) infinite;
   }
-  .crt-roll {
-    background: linear-gradient(180deg, transparent 0%, rgba(255,255,255,.18) 47%, rgba(255,255,255,.03) 53%, transparent 100%);
-    animation: crt-roll 1.3s linear infinite;
+  .crt-snow-scan {
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(0deg, rgba(0,0,0,.5) 0 1px, transparent 1px 3px);
+    opacity: .75;
   }
-  .crt-flash { background: #f6f0e2; opacity: 0; }
-  .crt-overlay.is-on .crt-flash { animation: crt-flash .45s ease-out; }
+  .crt-snow-roll {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 0%, rgba(255,255,255,.2) 48%, rgba(255,255,255,.02) 52%, transparent 100%);
+    animation: crt-roll .9s linear infinite;
+  }
   .crt-osd {
     position: absolute;
     right: 1.4rem;
@@ -954,30 +967,22 @@
     text-shadow: 0 0 10px rgba(212,175,55,.85);
     animation: crt-blip 1s steps(2) infinite;
   }
-  .crt-shot.is-glitch img { animation: crt-glitch .24s steps(2) infinite; }
   @keyframes crt-noise {
     0%   { transform: translate3d(0,0,0); background-position: 0 0; }
-    33%  { transform: translate3d(-2%,1%,0); background-position: 42px -33px; }
-    66%  { transform: translate3d(1.6%,-2%,0); background-position: -36px 27px; }
+    33%  { transform: translate3d(-2%,1%,0); background-position: 46px -37px; }
+    66%  { transform: translate3d(1.8%,-2%,0); background-position: -38px 29px; }
     100% { transform: translate3d(0,0,0); background-position: 0 0; }
   }
   @keyframes crt-roll {
     0%   { transform: translateY(-100%); }
     100% { transform: translateY(100%); }
   }
-  @keyframes crt-flash {
-    0%   { opacity: .82; }
-    45%  { opacity: .06; }
-    100% { opacity: 0; }
-  }
   @keyframes crt-blip {
     50% { opacity: .3; }
   }
-  @keyframes crt-glitch {
-    0%,100% { transform: translate(0,0); }
-    25% { transform: translate(-9px,2px); }
-    50% { transform: translate(7px,-3px); }
-    75% { transform: translate(-4px,-2px); }
+  @keyframes crt-breathe {
+    from { transform: scale(1); }
+    to   { transform: scale(1.05); }
   }
   .pv-label-tag {
     position: absolute;
@@ -1492,10 +1497,11 @@
 <div class="crt-overlay" id="crtOverlay" aria-hidden="true">
   <div class="crt-shot" id="crtShot">
     <img src="./assets/forum-teaser-opt.jpg" alt="正在接入官方论坛" />
-    <div class="crt-scan"></div>
-    <div class="crt-noise"></div>
-    <div class="crt-roll"></div>
-    <div class="crt-flash"></div>
+  </div>
+  <div class="crt-snow">
+    <div class="crt-snow-noise"></div>
+    <div class="crt-snow-scan"></div>
+    <div class="crt-snow-roll"></div>
     <div class="crt-osd">CH.09 · 正在接入米游社</div>
   </div>
 </div>
@@ -1598,7 +1604,7 @@
     syncPv();
   }
 
-  // Official forum: CRT static transition before leaving the site
+  // Official forum: art card first, then full-screen CRT snow, then leave
   const crtOverlay = document.getElementById('crtOverlay');
   const crtLinks = document.querySelectorAll('a[data-crt-link]');
   if (crtOverlay && crtLinks.length) {
@@ -1607,8 +1613,8 @@
         e.preventDefault();
         const target = link.getAttribute('href');
         crtOverlay.classList.add('is-on');
-        document.getElementById('crtShot').classList.add('is-glitch');
-        window.setTimeout(() => { window.location.href = target; }, 2000);
+        window.setTimeout(() => crtOverlay.classList.add('is-static'), 1400);
+        window.setTimeout(() => { window.location.href = target; }, 2700);
       });
     });
   }
