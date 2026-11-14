@@ -1009,6 +1009,14 @@
     from { transform: scale(1); }
     to   { transform: scale(1.05); }
   }
+  /* --- dreamy cursor trail --- */
+  .trail-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 8500;
+    pointer-events: none;
+  }
+
   .pv-label-tag {
     position: absolute;
     top: 1.5rem;
@@ -1534,6 +1542,7 @@
     <div class="crt-osd">CH.09 · 正在接入米游社</div>
   </div>
 </div>
+<canvas id="trail" class="trail-layer" aria-hidden="true"></canvas>
 <audio id="crtSound" src="./assets/crt-static.mp3" preload="auto"></audio>
 
 <script>
@@ -1632,6 +1641,80 @@
     pv.addEventListener('pause', syncPv);
     pvWrap.classList.toggle('is-muted', pv.muted);
     syncPv();
+  }
+
+  // Dreamy cursor trail particles
+  const trailCanvas = document.getElementById('trail');
+  if (trailCanvas && window.matchMedia('(hover: hover)').matches && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const tctx = trailCanvas.getContext('2d');
+    const dots = [];
+    const palette = ['212,175,55', '157,125,255', '186,222,255', '246,240,226'];
+    let tw = 0;
+    let th = 0;
+    let raf = 0;
+    let lastSpawn = 0;
+
+    const sizeTrail = () => {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      tw = window.innerWidth;
+      th = window.innerHeight;
+      trailCanvas.width = Math.round(tw * dpr);
+      trailCanvas.height = Math.round(th * dpr);
+      trailCanvas.style.width = tw + 'px';
+      trailCanvas.style.height = th + 'px';
+      tctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+
+    const drawTrail = () => {
+      tctx.clearRect(0, 0, tw, th);
+      tctx.globalCompositeOperation = 'lighter';
+      for (let i = dots.length - 1; i >= 0; i--) {
+        const d = dots[i];
+        d.life -= 1;
+        if (d.life <= 0) { dots.splice(i, 1); continue; }
+        const t = d.life / d.ttl;
+        const r = d.r * (0.4 + t * 0.9) * 3.4;
+        const g = tctx.createRadialGradient(d.x, d.y, 0, d.x, d.y, r);
+        g.addColorStop(0, 'rgba(' + d.c + ',' + (0.5 * t).toFixed(3) + ')');
+        g.addColorStop(0.42, 'rgba(' + d.c + ',' + (0.14 * t).toFixed(3) + ')');
+        g.addColorStop(1, 'rgba(' + d.c + ',0)');
+        tctx.fillStyle = g;
+        tctx.beginPath();
+        tctx.arc(d.x, d.y, r, 0, Math.PI * 2);
+        tctx.fill();
+        d.x += d.vx;
+        d.y += d.vy;
+        d.vx *= 0.965;
+        d.vy = d.vy * 0.965 - 0.015;
+      }
+      raf = dots.length ? requestAnimationFrame(drawTrail) : 0;
+    };
+
+    window.addEventListener('pointermove', (e) => {
+      if (e.pointerType === 'touch') return;
+      const now = performance.now();
+      if (now - lastSpawn > 26) {
+        lastSpawn = now;
+        for (let i = 0; i < 2; i++) {
+          const life = 34 + Math.random() * 26;
+          dots.push({
+            x: e.clientX + (Math.random() - 0.5) * 16,
+            y: e.clientY + (Math.random() - 0.5) * 16,
+            vx: (Math.random() - 0.5) * 0.5,
+            vy: (Math.random() - 0.5) * 0.4 - 0.12,
+            r: 1.1 + Math.random() * 2.3,
+            life: life,
+            ttl: life,
+            c: palette[(Math.random() * palette.length) | 0]
+          });
+        }
+        if (dots.length > 240) dots.splice(0, dots.length - 240);
+      }
+      if (!raf) raf = requestAnimationFrame(drawTrail);
+    }, { passive: true });
+
+    sizeTrail();
+    window.addEventListener('resize', sizeTrail);
   }
 
   // Official forum: artwork first, then colour-bar static with sound, then leave
