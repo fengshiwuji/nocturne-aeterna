@@ -926,7 +926,7 @@
     object-fit: cover;
   }
   .crt-overlay.is-on .crt-shot img { animation: crt-breathe 1.9s ease-out forwards; }
-  .crt-snow {
+  .crt-static {
     position: absolute;
     inset: 0;
     z-index: 3;
@@ -934,26 +934,44 @@
     background: #060509;
     transition: opacity .16s linear;
   }
-  .crt-overlay.is-static .crt-snow { opacity: 1; }
-  .crt-snow-noise {
+  .crt-overlay.is-static .crt-static { opacity: 1; }
+  .crt-bars {
     position: absolute;
     inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.75'/%3E%3C/svg%3E");
-    opacity: .92;
-    mix-blend-mode: screen;
-    animation: crt-noise .16s steps(4) infinite;
+    background: #060509;
+    animation: bars-jitter .42s steps(1) infinite;
   }
-  .crt-snow-scan {
-    position: absolute;
-    inset: 0;
-    background: repeating-linear-gradient(0deg, rgba(0,0,0,.5) 0 1px, transparent 1px 3px);
-    opacity: .75;
+  .crt-row { position: absolute; left: 0; right: 0; }
+  .crt-row-top {
+    top: 0;
+    height: 60%;
+    background: linear-gradient(90deg, #c0c0c0 0 14.2857%, #c0c000 14.2857% 28.5714%, #00c0c0 28.5714% 42.8571%, #00c000 42.8571% 57.1428%, #c000c0 57.1428% 71.4285%, #c00000 71.4285% 85.7142%, #0000c0 85.7142% 100%);
   }
-  .crt-snow-roll {
+  .crt-row-mid {
+    top: 60%;
+    height: 12%;
+    background: linear-gradient(90deg, #0000c0 0 14.2857%, #131313 14.2857% 28.5714%, #c000c0 28.5714% 42.8571%, #131313 42.8571% 57.1428%, #00c0c0 57.1428% 71.4285%, #131313 71.4285% 85.7142%, #c0c0c0 85.7142% 100%);
+  }
+  .crt-row-low {
+    top: 72%;
+    height: 28%;
+    background: linear-gradient(90deg, #00214c 0 10%, #ffffff 10% 20%, #32006a 20% 30%, #0b0b0b 30% 70%, #060606 70% 76.6%, #131313 76.6% 83.3%, #1d1d1d 83.3% 90%, #131313 90% 100%);
+  }
+  .crt-grain {
     position: absolute;
     inset: 0;
-    background: linear-gradient(180deg, transparent 0%, rgba(255,255,255,.2) 48%, rgba(255,255,255,.02) 52%, transparent 100%);
-    animation: crt-roll .9s linear infinite;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+    opacity: .26;
+    mix-blend-mode: overlay;
+    animation: crt-noise .2s steps(3) infinite;
+  }
+  .crt-track {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 4%;
+    background: linear-gradient(180deg, transparent, rgba(255,255,255,.18) 45%, rgba(255,255,255,.04) 55%, transparent);
+    animation: track-run 1.5s linear infinite;
   }
   .crt-osd {
     position: absolute;
@@ -973,9 +991,16 @@
     66%  { transform: translate3d(1.8%,-2%,0); background-position: -38px 29px; }
     100% { transform: translate3d(0,0,0); background-position: 0 0; }
   }
-  @keyframes crt-roll {
-    0%   { transform: translateY(-100%); }
-    100% { transform: translateY(100%); }
+  @keyframes track-run {
+    0%   { top: -5%; }
+    100% { top: 105%; }
+  }
+  @keyframes bars-jitter {
+    0%,100% { transform: translate3d(0,0,0); }
+    22% { transform: translate3d(-3px,0,0); }
+    44% { transform: translate3d(2px,1px,0); }
+    66% { transform: translate3d(-1px,-2px,0); }
+    88% { transform: translate3d(3px,0,0); }
   }
   @keyframes crt-blip {
     50% { opacity: .3; }
@@ -1498,13 +1523,18 @@
   <div class="crt-shot" id="crtShot">
     <img src="./assets/forum-teaser-opt.jpg" alt="正在接入官方论坛" />
   </div>
-  <div class="crt-snow">
-    <div class="crt-snow-noise"></div>
-    <div class="crt-snow-scan"></div>
-    <div class="crt-snow-roll"></div>
+  <div class="crt-static">
+    <div class="crt-bars">
+      <div class="crt-row crt-row-top"></div>
+      <div class="crt-row crt-row-mid"></div>
+      <div class="crt-row crt-row-low"></div>
+    </div>
+    <div class="crt-grain"></div>
+    <div class="crt-track"></div>
     <div class="crt-osd">CH.09 · 正在接入米游社</div>
   </div>
 </div>
+<audio id="crtSound" src="./assets/crt-static.mp3" preload="auto"></audio>
 
 <script>
   // Nav scroll effect
@@ -1604,8 +1634,9 @@
     syncPv();
   }
 
-  // Official forum: art card first, then full-screen CRT snow, then leave
+  // Official forum: artwork first, then colour-bar static with sound, then leave
   const crtOverlay = document.getElementById('crtOverlay');
+  const crtSound = document.getElementById('crtSound');
   const crtLinks = document.querySelectorAll('a[data-crt-link]');
   if (crtOverlay && crtLinks.length) {
     crtLinks.forEach((link) => {
@@ -1614,7 +1645,14 @@
         const target = link.getAttribute('href');
         crtOverlay.classList.add('is-on');
         window.setTimeout(() => crtOverlay.classList.add('is-static'), 1400);
-        window.setTimeout(() => { window.location.href = target; }, 2700);
+        window.setTimeout(() => {
+          if (crtSound) {
+            crtSound.currentTime = 0;
+            crtSound.volume = 0.55;
+            crtSound.play().catch(() => {});
+          }
+        }, 1380);
+        window.setTimeout(() => { window.location.href = target; }, 3000);
       });
     });
   }
