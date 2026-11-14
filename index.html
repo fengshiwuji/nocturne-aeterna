@@ -399,8 +399,9 @@
     inset: 0;
     pointer-events: none;
   }
-  .char-stack.back { z-index: 0; }
-  .char-stack.front { z-index: 6; }
+  /* all panels sit above the portrait so nothing gets hidden */
+  .char-stack.back { z-index: 6; }
+  .char-stack.front { z-index: 7; }
 
   .stack-panel {
     position: absolute;
@@ -408,9 +409,11 @@
     border-radius: 3px;
     overflow: hidden;
     opacity: 0;
-    transform: translateY(36px) scale(.8) rotate(0deg);
-    transition: opacity .7s ease, transform .85s cubic-bezier(.16,.86,.28,1), box-shadow .85s;
+    transform-origin: var(--origin, left center);
+    transform: perspective(1100px) rotateY(var(--turn, -78deg)) rotate(var(--rot, 0deg)) translateY(18px) scale(.94);
+    transition: opacity .45s ease, transform .8s cubic-bezier(.18,.86,.24,1), box-shadow .6s;
     box-shadow: 0 0 0 rgba(0,0,0,0);
+    backface-visibility: hidden;
     will-change: transform, opacity;
   }
   .stack-panel img {
@@ -418,10 +421,11 @@
     object-fit: cover;
     display: block;
   }
+  /* page-turn reveal; stays on screen until the pointer leaves */
   .char-card:hover .stack-panel,
   .char-card.open .stack-panel {
     opacity: 1;
-    transform: translateY(0) scale(1) rotate(var(--rot, 0deg));
+    transform: perspective(1100px) rotateY(0deg) rotate(var(--rot, 0deg)) translateY(0) scale(1);
     box-shadow:
       0 14px 34px rgba(0,0,0,.6),
       0 0 22px var(--glow, rgba(212,175,55,.5)),
@@ -429,31 +433,35 @@
     transition-delay: var(--d, 0s);
   }
 
-  /* image panels peek out from behind the portrait */
+  /* image panels: page-turn in from the upper corners, fully in front */
   .sp1 {
-    width: 62%; aspect-ratio: 4/5;
-    top: -11%; left: -25%;
-    --rot: -9deg; --d: 0s;
-    border: 1px solid rgba(232,224,255,.45);
+    width: 64%; aspect-ratio: 4/5;
+    top: -9%; left: -28%;
+    --rot: -9deg; --turn: -78deg; --origin: left center; --d: 0s;
+    border: 1px solid rgba(232,224,255,.5);
     --glow: rgba(232,224,255,.5);
+    z-index: 1;
   }
   .sp2 {
-    width: 62%; aspect-ratio: 4/5;
-    top: -7%; right: -25%;
-    --rot: 8deg; --d: 4s;
-    border: 1px solid rgba(157,125,255,.45);
+    width: 64%; aspect-ratio: 4/5;
+    top: -5%; right: -28%;
+    --rot: 8deg; --turn: 78deg; --origin: right center; --d: 1s;
+    border: 1px solid rgba(157,125,255,.5);
     --glow: rgba(157,125,255,.5);
+    z-index: 2;
   }
-  /* story panels slide in front, at the lower corners */
+  /* story panels: page-turn in from the lower corners */
   .sp3 {
-    width: 74%; aspect-ratio: 4/5;
-    bottom: -16%; left: -30%;
-    --rot: -5deg; --d: 8s;
+    width: 76%; aspect-ratio: 4/5;
+    bottom: -15%; left: -31%;
+    --rot: -5deg; --turn: -70deg; --origin: left center; --d: 2s;
+    z-index: 3;
   }
   .sp4 {
-    width: 74%; aspect-ratio: 4/5;
-    bottom: -11%; right: -30%;
-    --rot: 6deg; --d: 12s;
+    width: 76%; aspect-ratio: 4/5;
+    bottom: -10%; right: -31%;
+    --rot: 6deg; --turn: 70deg; --origin: right center; --d: 3s;
+    z-index: 4;
   }
 
   .stack-story {
