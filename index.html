@@ -308,35 +308,60 @@
     background: linear-gradient(180deg, var(--bg) 0%, var(--bg2) 100%);
   }
   .char-grid {
-    max-width: 1300px;
+    max-width: 1320px;
     margin: 0 auto;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 1.8rem;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 2rem;
   }
   .char-card {
+    position: relative;
+    cursor: pointer;
+    transition: z-index 0s;
+  }
+  .char-card:hover,
+  .char-card.open { z-index: 30; }
+
+  .char-face {
     position: relative;
     aspect-ratio: 3/4;
     overflow: hidden;
     border-radius: 4px;
-    cursor: pointer;
     border: 1px solid var(--rule);
-    transition: all 0.4s;
+    background: var(--bg2);
+    transition: border-color .4s, box-shadow .5s, transform .5s;
   }
-  .char-card img {
+  .char-face img {
     width: 100%; height: 100%;
     object-fit: cover;
-    transition: transform 0.6s;
+    transition: transform .8s cubic-bezier(.2,.8,.3,1), filter .6s;
   }
-  .char-card:hover img { transform: scale(1.1); }
-  .char-card::after {
+  .char-face::after {
     content: ''; position: absolute; inset: 0;
     background: linear-gradient(180deg, transparent 30%, rgba(8,7,15,0.95) 100%);
+    pointer-events: none;
+  }
+  .char-card:hover .char-face,
+  .char-card.open .char-face {
+    border-color: rgba(212,175,55,0.5);
+    box-shadow: 0 18px 46px rgba(0,0,0,0.55);
+    transform: translateY(-6px);
+  }
+  .char-card:hover .char-face img,
+  .char-card.open .char-face img {
+    transform: scale(1.07);
+    filter: brightness(.7) saturate(.9);
   }
   .char-info {
     position: absolute; bottom: 0; left: 0; right: 0;
     padding: 1.5rem;
     z-index: 2;
+    transition: opacity .4s, transform .5s;
+  }
+  .char-card:hover .char-info,
+  .char-card.open .char-info {
+    opacity: .3;
+    transform: translateY(8px);
   }
   .char-element {
     display: inline-block;
@@ -368,9 +393,109 @@
     color: var(--muted);
     letter-spacing: 0.1em;
   }
-  .char-card:hover {
-    border-color: var(--accent);
-    box-shadow: 0 15px 40px rgba(0,0,0,0.5);
+  /* --- Hover stack: images + story cards appear one by one --- */
+  .char-stack {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+  .char-stack.back { z-index: 0; }
+  .char-stack.front { z-index: 6; }
+
+  .stack-panel {
+    position: absolute;
+    margin: 0;
+    border-radius: 3px;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(36px) scale(.8) rotate(0deg);
+    transition: opacity .7s ease, transform .85s cubic-bezier(.16,.86,.28,1), box-shadow .85s;
+    box-shadow: 0 0 0 rgba(0,0,0,0);
+    will-change: transform, opacity;
+  }
+  .stack-panel img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .char-card:hover .stack-panel,
+  .char-card.open .stack-panel {
+    opacity: 1;
+    transform: translateY(0) scale(1) rotate(var(--rot, 0deg));
+    box-shadow:
+      0 14px 34px rgba(0,0,0,.6),
+      0 0 22px var(--glow, rgba(212,175,55,.5)),
+      0 0 58px var(--glow-soft, rgba(139,111,204,.28));
+    transition-delay: var(--d, 0s);
+  }
+
+  /* image panels peek out from behind the portrait */
+  .sp1 {
+    width: 62%; aspect-ratio: 4/5;
+    top: -11%; left: -25%;
+    --rot: -9deg; --d: 0s;
+    border: 1px solid rgba(232,224,255,.45);
+    --glow: rgba(232,224,255,.5);
+  }
+  .sp2 {
+    width: 62%; aspect-ratio: 4/5;
+    top: -7%; right: -25%;
+    --rot: 8deg; --d: 4s;
+    border: 1px solid rgba(157,125,255,.45);
+    --glow: rgba(157,125,255,.5);
+  }
+  /* story panels slide in front, at the lower corners */
+  .sp3 {
+    width: 74%; aspect-ratio: 4/5;
+    bottom: -16%; left: -30%;
+    --rot: -5deg; --d: 8s;
+  }
+  .sp4 {
+    width: 74%; aspect-ratio: 4/5;
+    bottom: -11%; right: -30%;
+    --rot: 6deg; --d: 12s;
+  }
+
+  .stack-story {
+    background:
+      radial-gradient(120% 80% at 50% 0%, rgba(139,111,204,.2) 0%, transparent 62%),
+      linear-gradient(165deg, rgba(24,21,38,.97) 0%, rgba(10,9,18,.99) 100%);
+    border: 1px solid rgba(212,175,55,.45);
+    padding: 1rem .95rem;
+    display: flex;
+    flex-direction: column;
+    gap: .45rem;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+    --glow: rgba(212,175,55,.4);
+    --glow-soft: rgba(212,175,55,.16);
+  }
+  .stack-ch {
+    font-size: .55rem;
+    letter-spacing: .24em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .stack-story h4 {
+    font-family: 'CrimsonPro', serif;
+    font-size: 1.02rem;
+    line-height: 1.32;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .stack-story p {
+    font-size: .68rem;
+    line-height: 1.68;
+    color: var(--muted);
+  }
+
+  @media (max-width: 900px) {
+    .char-grid { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 1.4rem; }
+    .sp1 { left: -14%; width: 58%; }
+    .sp2 { right: -14%; width: 58%; }
+    .sp3 { width: 68%; left: -17%; bottom: -12%; }
+    .sp4 { width: 68%; right: -17%; bottom: -8%; }
   }
 
   /* ===== World ===== */
@@ -746,75 +871,245 @@
   </div>
   <div class="char-grid">
     <div class="char-card reveal">
-      <img src="./assets/char-selene.jpg" alt="夜鸢·塞勒涅">
-      <div class="char-info">
-        <span class="char-element lunar">月相 · LUNAR</span>
-        <h3 class="char-name">夜鸢·塞勒涅</h3>
-        <div class="char-name-en">Selene · Night Kite</div>
+      <div class="char-stack back" aria-hidden="true">
+        <figure class="stack-panel sp1"><img src="./assets/story/selene-detail.jpg" alt=""></figure>
+        <figure class="stack-panel sp2"><img src="./assets/story/selene-scene.jpg" alt=""></figure>
+      </div>
+      <div class="char-face">
+        <img src="./assets/char-selene.jpg" alt="夜鸢·塞勒涅">
+        <div class="char-info">
+          <span class="char-element lunar">月相 · LUNAR</span>
+          <h3 class="char-name">夜鸢·塞勒涅</h3>
+          <div class="char-name-en">Selene · Night Kite</div>
+        </div>
+      </div>
+      <div class="char-stack front" aria-hidden="true">
+        <div class="stack-panel sp3 stack-story">
+          <span class="stack-ch">Chapter I</span>
+          <h4>月下的第一支箭</h4>
+          <p>永夜第七年，她在碎月城的钟楼上射落一枚坠落的星核。从那天起，银弓不再只为狩猎而鸣。</p>
+        </div>
+        <div class="stack-panel sp4 stack-story">
+          <span class="stack-ch">Chapter II</span>
+          <h4>无月之夜</h4>
+          <p>每逢星渊潮汐退去，她都会独自登上塔顶。她说那里能听见早已殒落的故乡，仍在低声歌唱。</p>
+        </div>
       </div>
     </div>
+
     <div class="char-card reveal">
-      <img src="./assets/char-charon.jpg" alt="烬灭·卡戎">
-      <div class="char-info">
-        <span class="char-element flare">耀斑 · FLARE</span>
-        <h3 class="char-name">烬灭·卡戎</h3>
-        <div class="char-name-en">Charon · Emberfall</div>
+      <div class="char-stack back" aria-hidden="true">
+        <figure class="stack-panel sp1"><img src="./assets/story/charon-detail.jpg" alt=""></figure>
+        <figure class="stack-panel sp2"><img src="./assets/story/charon-scene.jpg" alt=""></figure>
+      </div>
+      <div class="char-face">
+        <img src="./assets/char-charon.jpg" alt="烬灭·卡戎">
+        <div class="char-info">
+          <span class="char-element flare">耀斑 · FLARE</span>
+          <h3 class="char-name">烬灭·卡戎</h3>
+          <div class="char-name-en">Charon · Emberfall</div>
+        </div>
+      </div>
+      <div class="char-stack front" aria-hidden="true">
+        <div class="stack-panel sp3 stack-story">
+          <span class="stack-ch">Chapter I</span>
+          <h4>焚尽的渡口</h4>
+          <p>他曾是引渡亡魂的摆渡人，直到渡船被一场耀斑吞没。如今他掌心的裂痕里，仍燃着那场火。</p>
+        </div>
+        <div class="stack-panel sp4 stack-story">
+          <span class="stack-ch">Chapter II</span>
+          <h4>余烬之名</h4>
+          <p>名字被烧掉之后，他给自己取了「卡戎」——渡人者，不渡己。</p>
+        </div>
       </div>
     </div>
+
     <div class="char-card reveal">
-      <img src="./assets/char-vera.jpg" alt="星痕·薇拉">
-      <div class="char-info">
-        <span class="char-element comet">彗尾 · COMET</span>
-        <h3 class="char-name">星痕·薇拉</h3>
-        <div class="char-name-en">Vera · Star Dent</div>
+      <div class="char-stack back" aria-hidden="true">
+        <figure class="stack-panel sp1"><img src="./assets/story/vera-detail.jpg" alt=""></figure>
+        <figure class="stack-panel sp2"><img src="./assets/story/vera-scene.jpg" alt=""></figure>
+      </div>
+      <div class="char-face">
+        <img src="./assets/char-vera.jpg" alt="星痕·薇拉">
+        <div class="char-info">
+          <span class="char-element comet">彗尾 · COMET</span>
+          <h3 class="char-name">星痕·薇拉</h3>
+          <div class="char-name-en">Vera · Star Dent</div>
+        </div>
+      </div>
+      <div class="char-stack front" aria-hidden="true">
+        <div class="stack-panel sp3 stack-story">
+          <span class="stack-ch">Chapter I</span>
+          <h4>彗星坠落的夜晚</h4>
+          <p>她追着一颗彗星走过九重星渊，直到发现彗尾的尽头，是她自己未写完的名字。</p>
+        </div>
+        <div class="stack-panel sp4 stack-story">
+          <span class="stack-ch">Chapter II</span>
+          <h4>星痕测绘师</h4>
+          <p>薇拉的笔记里没有地图，只有一道道刻痕——每一道，都是她曾抵达又失去的世界。</p>
+        </div>
       </div>
     </div>
+
     <div class="char-card reveal">
-      <img src="./assets/char-aska.jpg" alt="渊月·阿斯卡">
-      <div class="char-info">
-        <span class="char-element abyss">黑洞 · ABYSS</span>
-        <h3 class="char-name">渊月·阿斯卡</h3>
-        <div class="char-name-en">Aska · Abyssal Moon</div>
+      <div class="char-stack back" aria-hidden="true">
+        <figure class="stack-panel sp1"><img src="./assets/story/aska-detail.jpg" alt=""></figure>
+        <figure class="stack-panel sp2"><img src="./assets/story/aska-scene.jpg" alt=""></figure>
+      </div>
+      <div class="char-face">
+        <img src="./assets/char-aska.jpg" alt="渊月·阿斯卡">
+        <div class="char-info">
+          <span class="char-element abyss">黑洞 · ABYSS</span>
+          <h3 class="char-name">渊月·阿斯卡</h3>
+          <div class="char-name-en">Aska · Abyssal Moon</div>
+        </div>
+      </div>
+      <div class="char-stack front" aria-hidden="true">
+        <div class="stack-panel sp3 stack-story">
+          <span class="stack-ch">Chapter I</span>
+          <h4>渊底的回声</h4>
+          <p>她潜入黑洞边缘，只为听清一声呼唤。回声说：别回头。她还是回头了。</p>
+        </div>
+        <div class="stack-panel sp4 stack-story">
+          <span class="stack-ch">Chapter II</span>
+          <h4>月蚀之约</h4>
+          <p>阿斯卡与「渊月」订立契约，以记忆换取力量。她已记不清，被拿走的是哪一段。</p>
+        </div>
       </div>
     </div>
+
     <div class="char-card reveal">
-      <img src="./assets/char-noelle.jpg" alt="碎风·诺艾尔">
-      <div class="char-info">
-        <span class="char-element aurora">极光 · AURORA</span>
-        <h3 class="char-name">碎风·诺艾尔</h3>
-        <div class="char-name-en">Noelle · Windshatter</div>
+      <div class="char-stack back" aria-hidden="true">
+        <figure class="stack-panel sp1"><img src="./assets/story/noelle-detail.jpg" alt=""></figure>
+        <figure class="stack-panel sp2"><img src="./assets/story/noelle-scene.jpg" alt=""></figure>
+      </div>
+      <div class="char-face">
+        <img src="./assets/char-noelle.jpg" alt="碎风·诺艾尔">
+        <div class="char-info">
+          <span class="char-element aurora">极光 · AURORA</span>
+          <h3 class="char-name">碎风·诺艾尔</h3>
+          <div class="char-name-en">Noelle · Windshatter</div>
+        </div>
+      </div>
+      <div class="char-stack front" aria-hidden="true">
+        <div class="stack-panel sp3 stack-story">
+          <span class="stack-ch">Chapter I</span>
+          <h4>追风的孩子</h4>
+          <p>极光掠过冻原那晚，她第一次听见风的语言——那不是呼啸，是九重星渊在呼吸。</p>
+        </div>
+        <div class="stack-panel sp4 stack-story">
+          <span class="stack-ch">Chapter II</span>
+          <h4>无声的挽歌</h4>
+          <p>她为每一阵逝去的风立碑，碑上没有名字，只有一段只有她能听见的旋律。</p>
+        </div>
       </div>
     </div>
+
     <div class="char-card reveal">
-      <img src="./assets/char-ilya.jpg" alt="霜星·伊利亚">
-      <div class="char-info">
-        <span class="char-element dwarf">白矮 · DWARF</span>
-        <h3 class="char-name">霜星·伊利亚</h3>
-        <div class="char-name-en">Ilya · Froststar</div>
+      <div class="char-stack back" aria-hidden="true">
+        <figure class="stack-panel sp1"><img src="./assets/story/ilya-detail.jpg" alt=""></figure>
+        <figure class="stack-panel sp2"><img src="./assets/story/ilya-scene.jpg" alt=""></figure>
+      </div>
+      <div class="char-face">
+        <img src="./assets/char-ilya.jpg" alt="霜星·伊利亚">
+        <div class="char-info">
+          <span class="char-element dwarf">白矮 · DWARF</span>
+          <h3 class="char-name">霜星·伊利亚</h3>
+          <div class="char-name-en">Ilya · Froststar</div>
+        </div>
+      </div>
+      <div class="char-stack front" aria-hidden="true">
+        <div class="stack-panel sp3 stack-story">
+          <span class="stack-ch">Chapter I</span>
+          <h4>永冻的守望</h4>
+          <p>白矮星核的冰层下封着一座城。伊利亚守了它三百年，等一个再也不会回来的人。</p>
+        </div>
+        <div class="stack-panel sp4 stack-story">
+          <span class="stack-ch">Chapter II</span>
+          <h4>霜落的誓言</h4>
+          <p>她的剑从不融化。她说，只有不会融化的东西，才配承载誓言。</p>
+        </div>
       </div>
     </div>
+
     <div class="char-card reveal">
-      <img src="./assets/char-phaeton.jpg" alt="炽翎·法厄同">
-      <div class="char-info">
-        <span class="char-element nova">超新星 · NOVA</span>
-        <h3 class="char-name">炽翎·法厄同</h3>
-        <div class="char-name-en">Phaeton · Blaze Wing</div>
+      <div class="char-stack back" aria-hidden="true">
+        <figure class="stack-panel sp1"><img src="./assets/story/phaeton-detail.jpg" alt=""></figure>
+        <figure class="stack-panel sp2"><img src="./assets/story/phaeton-scene.jpg" alt=""></figure>
+      </div>
+      <div class="char-face">
+        <img src="./assets/char-phaeton.jpg" alt="炽翎·法厄同">
+        <div class="char-info">
+          <span class="char-element nova">超新星 · NOVA</span>
+          <h3 class="char-name">炽翎·法厄同</h3>
+          <div class="char-name-en">Phaeton · Blaze Wing</div>
+        </div>
+      </div>
+      <div class="char-stack front" aria-hidden="true">
+        <div class="stack-panel sp3 stack-story">
+          <span class="stack-ch">Chapter I</span>
+          <h4>向死而燃</h4>
+          <p>他体内封着一颗将爆的恒星。每一次挥翼，都是把自己的寿命烧成光。</p>
+        </div>
+        <div class="stack-panel sp4 stack-story">
+          <span class="stack-ch">Chapter II</span>
+          <h4>灰烬中的王冠</h4>
+          <p>王座早已成灰，他仍在灰烬里寻找那顶从未戴上的冠——为了证明自己曾活过。</p>
+        </div>
       </div>
     </div>
+
     <div class="char-card reveal">
-      <img src="./assets/char-sirene.jpg" alt="暮潮·赛莲">
-      <div class="char-info">
-        <span class="char-element pulse">脉冲 · PULSE</span>
-        <h3 class="char-name">暮潮·赛莲</h3>
-        <div class="char-name-en">Sirene · Dusk Tide</div>
+      <div class="char-stack back" aria-hidden="true">
+        <figure class="stack-panel sp1"><img src="./assets/story/sirene-detail.jpg" alt=""></figure>
+        <figure class="stack-panel sp2"><img src="./assets/story/sirene-scene.jpg" alt=""></figure>
+      </div>
+      <div class="char-face">
+        <img src="./assets/char-sirene.jpg" alt="暮潮·赛莲">
+        <div class="char-info">
+          <span class="char-element pulse">脉冲 · PULSE</span>
+          <h3 class="char-name">暮潮·赛莲</h3>
+          <div class="char-name-en">Sirene · Dusk Tide</div>
+        </div>
+      </div>
+      <div class="char-stack front" aria-hidden="true">
+        <div class="stack-panel sp3 stack-story">
+          <span class="stack-ch">Chapter I</span>
+          <h4>潮汐的歌者</h4>
+          <p>她的歌声能让星潮改道。可她唱了千年，也没能让那艘沉船浮起。</p>
+        </div>
+        <div class="stack-panel sp4 stack-story">
+          <span class="stack-ch">Chapter II</span>
+          <h4>脉冲之心</h4>
+          <p>她的心跳与星渊脉冲同频。每一次跳动，都有一座远方大陆亮起灯火。</p>
+        </div>
       </div>
     </div>
+
     <div class="char-card reveal">
-      <img src="./assets/char-metis.jpg" alt="幽瞳·墨提斯">
-      <div class="char-info">
-        <span class="char-element void">暗质 · VOID</span>
-        <h3 class="char-name">幽瞳·墨提斯</h3>
-        <div class="char-name-en">Metis · Umbral Eye</div>
+      <div class="char-stack back" aria-hidden="true">
+        <figure class="stack-panel sp1"><img src="./assets/story/metis-detail.jpg" alt=""></figure>
+        <figure class="stack-panel sp2"><img src="./assets/story/metis-scene.jpg" alt=""></figure>
+      </div>
+      <div class="char-face">
+        <img src="./assets/char-metis.jpg" alt="幽瞳·墨提斯">
+        <div class="char-info">
+          <span class="char-element void">暗质 · VOID</span>
+          <h3 class="char-name">幽瞳·墨提斯</h3>
+          <div class="char-name-en">Metis · Umbral Eye</div>
+        </div>
+      </div>
+      <div class="char-stack front" aria-hidden="true">
+        <div class="stack-panel sp3 stack-story">
+          <span class="stack-ch">Chapter I</span>
+          <h4>无面的观测者</h4>
+          <p>没人见过她的脸。她只在世界的裂隙处出现，记录所有被遗忘的名字。</p>
+        </div>
+        <div class="stack-panel sp4 stack-story">
+          <span class="stack-ch">Chapter II</span>
+          <h4>暗质之瞳</h4>
+          <p>她的左眼能看见不存在之物，右眼能看见必然发生之事。她从不闭眼。</p>
+        </div>
       </div>
     </div>
   </div>
@@ -958,6 +1253,17 @@
   const charCards = document.querySelectorAll('.char-card');
   charCards.forEach((card, i) => {
     card.style.transitionDelay = (i * 0.08) + 's';
+  });
+
+  // Stacked dossier: tap toggles the stack on touch devices
+  const touchOnly = window.matchMedia('(hover: none)');
+  charCards.forEach(card => {
+    card.addEventListener('click', () => {
+      if (!touchOnly.matches) return;
+      const willOpen = !card.classList.contains('open');
+      charCards.forEach(c => c.classList.remove('open'));
+      if (willOpen) card.classList.add('open');
+    });
   });
 </script>
 
