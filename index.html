@@ -833,6 +833,67 @@
     pointer-events: none;
     z-index: 1;
   }
+  .pv-controls {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    gap: .85rem;
+    padding: 1.7rem 1.4rem .95rem;
+    background: linear-gradient(0deg, rgba(6,5,12,.94) 0%, rgba(6,5,12,.6) 62%, transparent 100%);
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity .35s ease, transform .35s ease;
+  }
+  .pv-wrap:hover .pv-controls,
+  .pv-wrap:focus-within .pv-controls { opacity: 1; transform: none; }
+  .pv-btn {
+    width: 32px; height: 32px;
+    display: grid; place-items: center;
+    background: none; border: 0; padding: 0;
+    color: var(--accent);
+    transition: color .25s, transform .25s;
+    cursor: url('./assets/cursor-pointer.svg') 16 16, pointer;
+  }
+  .pv-btn:hover { color: #f6f0e2; transform: scale(1.1); }
+  .pv-btn svg { width: 18px; height: 18px; fill: currentColor; }
+  .pv-btn .ico-pause,
+  .pv-btn .ico-muted { display: none; }
+  .pv-wrap.is-playing .ico-play { display: none; }
+  .pv-wrap.is-playing .ico-pause { display: block; }
+  .pv-wrap.is-muted .ico-sound { display: none; }
+  .pv-wrap.is-muted .ico-muted { display: block; }
+  .pv-track {
+    flex: 1;
+    height: 4px;
+    position: relative;
+    border-radius: 2px;
+    background: rgba(232,224,255,.18);
+    cursor: url('./assets/cursor-pointer.svg') 16 16, pointer;
+  }
+  .pv-track::before {
+    content: '';
+    position: absolute;
+    left: 0; right: 0; top: -9px; bottom: -9px;
+  }
+  .pv-fill {
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 0;
+    border-radius: 2px;
+    background: linear-gradient(90deg, #9d7dff, var(--accent));
+    box-shadow: 0 0 10px rgba(212,175,55,.5);
+  }
+  .pv-time {
+    font-size: .7rem;
+    letter-spacing: .08em;
+    color: var(--muted);
+    display: inline-flex;
+    gap: .3rem;
+    white-space: nowrap;
+  }
+  .pv-time em { font-style: normal; opacity: .5; }
   .pv-label-tag {
     position: absolute;
     top: 1.5rem;
@@ -939,8 +1000,25 @@
   </div>
   <div class="pv-wrap reveal">
     <span class="pv-label-tag">PV · 永夜之诗</span>
-    <video src="./assets/pv-trailer.mp4?v=6" controls autoplay muted loop playsinline poster="./assets/hero-bg.jpg"></video>
+    <video id="pvVideo" src="./assets/pv-trailer.mp4?v=6" autoplay muted loop playsinline poster="./assets/hero-bg.jpg"></video>
     <div class="pv-overlay"></div>
+    <div class="pv-controls">
+      <button class="pv-btn" id="pvPlay" aria-label="播放或暂停">
+        <svg class="ico-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5l11 7-11 7z"/></svg>
+        <svg class="ico-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>
+      </button>
+      <div class="pv-track" id="pvTrack" role="slider" aria-label="播放进度">
+        <div class="pv-fill" id="pvFill"></div>
+      </div>
+      <span class="pv-time"><span id="pvCur">0:00</span><em>/</em><span id="pvDur">0:00</span></span>
+      <button class="pv-btn" id="pvMute" aria-label="静音切换">
+        <svg class="ico-sound" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16.5 8.5a5 5 0 010 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <svg class="ico-muted" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 9l5 6M21 9l-5 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </button>
+      <button class="pv-btn" id="pvFull" aria-label="全屏">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
   </div>
 </section>
 
@@ -1374,6 +1452,54 @@
       if (!touchOnly.matches) return;
       worldCard.classList.toggle('open');
     });
+  }
+
+  // Custom PV control bar (native controls cannot be restyled)
+  const pv = document.getElementById('pvVideo');
+  if (pv) {
+    const pvWrap = pv.closest('.pv-wrap');
+    const pvFill = document.getElementById('pvFill');
+    const pvTrack = document.getElementById('pvTrack');
+    const pvCur = document.getElementById('pvCur');
+    const pvDur = document.getElementById('pvDur');
+
+    const fmt = (s) => {
+      if (!isFinite(s)) return '0:00';
+      const t = Math.floor(s);
+      return Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0');
+    };
+
+    const syncPv = () => {
+      const d = pv.duration || 0;
+      pvFill.style.width = (d ? (pv.currentTime / d) * 100 : 0) + '%';
+      pvCur.textContent = fmt(pv.currentTime);
+      pvDur.textContent = fmt(d);
+      pvWrap.classList.toggle('is-playing', !pv.paused);
+    };
+
+    document.getElementById('pvPlay').addEventListener('click', () => {
+      if (pv.paused) pv.play(); else pv.pause();
+    });
+    document.getElementById('pvMute').addEventListener('click', () => {
+      pv.muted = !pv.muted;
+      pvWrap.classList.toggle('is-muted', pv.muted);
+    });
+    document.getElementById('pvFull').addEventListener('click', () => {
+      if (document.fullscreenElement) document.exitFullscreen();
+      else if (pvWrap.requestFullscreen) pvWrap.requestFullscreen();
+    });
+    pvTrack.addEventListener('click', (e) => {
+      const r = pvTrack.getBoundingClientRect();
+      if (pv.duration) pv.currentTime = ((e.clientX - r.left) / r.width) * pv.duration;
+      syncPv();
+    });
+
+    pv.addEventListener('timeupdate', syncPv);
+    pv.addEventListener('loadedmetadata', syncPv);
+    pv.addEventListener('play', syncPv);
+    pv.addEventListener('pause', syncPv);
+    pvWrap.classList.toggle('is-muted', pv.muted);
+    syncPv();
   }
 </script>
 
